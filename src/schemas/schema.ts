@@ -15,14 +15,17 @@ export function text(min: number, max: number): Rule<string> {
     check(value) {
       if (typeof value !== "string") return "texte attendu";
       const len = value.trim().length;
-      if (len < min || value.length > max) return `doit contenir entre ${min} et ${max} caractères`;
+      if (len < min || value.length > max)
+        return `doit contenir entre ${min} et ${max} caractères`;
       return null;
     },
   };
 }
 
 // Valeur appartenant à une liste fermée.
-export function oneOf<T extends readonly unknown[]>(values: T): Rule<T[number]> {
+export function oneOf<T extends readonly unknown[]>(
+  values: T,
+): Rule<T[number]> {
   return {
     optional: false,
     check(value) {
@@ -38,7 +41,11 @@ export function oneOf<T extends readonly unknown[]>(values: T): Rule<T[number]> 
 export const isoDate: Rule<string> = {
   optional: false,
   check(value) {
-    if (typeof value !== "string" || value.trim() === "" || isNaN(Date.parse(value))) {
+    if (
+      typeof value !== "string" ||
+      value.trim() === "" ||
+      isNaN(Date.parse(value))
+    ) {
       return "date invalide";
     }
     return null;
@@ -61,7 +68,11 @@ export function optional<T>(rule: Rule<T>): Rule<T | undefined> {
  * @param partial true pour une modification (PUT) : les champs absents sont ignorés.
  * @returns le premier message d'erreur, ou null si tout est valide.
  */
-export function validate(schema: Schema, body: any, partial = false): string | null {
+export function validate(
+  schema: Schema,
+  body: any,
+  partial = false,
+): string | null {
   const data = body ?? {};
   for (const [field, rule] of Object.entries(schema)) {
     const value = data[field];
@@ -75,3 +86,16 @@ export function validate(schema: Schema, body: any, partial = false): string | n
   }
   return null;
 }
+
+export const email: Rule<string> = {
+  optional: false,
+  check(value) {
+    if (
+      typeof value !== "string" ||
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)
+    ) {
+      return "email invalide";
+    }
+    return null;
+  },
+};

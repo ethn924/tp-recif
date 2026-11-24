@@ -1,6 +1,7 @@
 import express from "express";
 import { buildWhere } from "./utils/query-helper.js";
 import { db } from "./data/db.js";
+import { parseId } from "./schemas/common.js";
 
 export function createApp() {
   const app = express();
@@ -8,7 +9,13 @@ export function createApp() {
   // ---------------------------------------------------------------- POISSONS
 
   // Liste des poissons, avec filtres ?species= et ?status=
-  app.get("/fish", (req, res) => {
+  app.get<{ id: string }>("/fish/:id", (req, res) => {
+    const id = parseId(req.params.id);
+
+    if (id === null) {
+      return res.status(400).json({ message: "identifiant invalide" });
+    }
+
     try {
       const filters: any = {};
       if (req.query.species)
@@ -26,7 +33,12 @@ export function createApp() {
   });
 
   // Détail d'un poisson, avec ses demandes d'adoption
-  app.get("/fish/:id", (req, res) => {
+  app.get<{ id: string }>("/fish/:id", (req, res) => {
+    const id = parseId(req.params.id);
+
+    if (id === null) {
+      return res.status(400).json({ message: "identifiant invalide" });
+    }
     const fish: any = db
       .prepare("SELECT * FROM fish WHERE id = ?")
       .get(req.params.id);
@@ -41,7 +53,7 @@ export function createApp() {
   });
 
   // Ajout d'un poisson (équipe du Récif)
-  app.post("/fish", express.json(), (req, res) => {
+  app.post<{ id: string }>("/fish", express.json(), (req, res) => {
     if (req.headers["x-api-key"] !== "recif-secret") {
       res.status(401).json({ message: "Non autorisé" });
       return;
@@ -93,7 +105,7 @@ export function createApp() {
   });
 
   // Modification d'un poisson (équipe du Récif)
-  app.put("/fish/:id", express.json(), (req, res) => {
+  app.put<{ id: string }>("/fish/:id", express.json(), (req, res) => {
     if (req.headers["x-api-key"] !== "recif-secret") {
       res.status(401).json({ error: "Clé API manquante" });
       return;
@@ -145,7 +157,7 @@ export function createApp() {
   });
 
   // Suppression d'un poisson (équipe du Récif)
-  app.delete("/fish/:id", (req, res) => {
+  app.delete<{ id: string }>("/fish/:id", (req, res) => {
     if (req.headers["x-api-key"] !== "recif-secret") {
       res.status(401).send("Non autorisé");
       return;
@@ -168,7 +180,7 @@ export function createApp() {
   // ---------------------------------------------------------------- ADOPTIONS
 
   // Demande d'adoption (public)
-  app.post("/fish/:id/adoptions", express.json(), (req, res) => {
+  app.post<{ id: string }>("/fish/:id/adoptions", express.json(), (req, res) => {
     const b = req.body;
     if (
       !b.adopterName ||
@@ -225,7 +237,7 @@ export function createApp() {
   });
 
   // Liste des demandes (équipe du Récif), filtre ?status=
-  app.get("/adoptions", (req, res) => {
+  app.get<{ id: string }>("/adoptions", (req, res) => {
     if (req.headers["x-api-key"] !== "recif-secret") {
       res.status(401).json({ message: "Non autorisé" });
       return;
@@ -246,7 +258,7 @@ export function createApp() {
   });
 
   // Accepter une demande (équipe du Récif)
-  app.post("/adoptions/:id/accept", (req, res) => {
+  app.post<{ id: string }>("/adoptions/:id/accept", (req, res) => {
     if (req.headers["x-api-key"] !== "recif-secret") {
       res.status(401).json({ message: "Non autorisé" });
       return;
@@ -283,7 +295,7 @@ export function createApp() {
   });
 
   // Refuser une demande (équipe du Récif)
-  app.post("/adoptions/:id/refuse", (req, res) => {
+  app.post<{ id: string }>("/adoptions/:id/refuse", (req, res) => {
     if (req.headers["x-api-key"] !== "recif-secret") {
       res.status(401).json({ message: "Non autorisé" });
       return;
