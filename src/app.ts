@@ -1,6 +1,5 @@
 import express from "express";
 import Database from "better-sqlite3";
-import { ResponseFormatterFactory } from "./utils/response-formatter.js";
 import { buildWhere } from "./utils/query-helper.js";
 
 const DB_FILE = process.env.DB_FILE || "recif.db";
@@ -36,7 +35,7 @@ export function createApp() {
     }
     fish.requests = db.prepare("SELECT * FROM adoption_requests WHERE fish_id = ?").all(req.params.id);
     db.close();
-    ResponseFormatterFactory.getInstance().getFormatter("json").format(res, 200, fish);
+    res.status(200).json(fish)
   });
 
   // Ajout d'un poisson (équipe du Récif)
@@ -70,7 +69,7 @@ export function createApp() {
       .run(b.name.trim(), b.species, b.breed || null, b.birthDate || null, b.description || "", b.internalNotes || "", new Date().toISOString());
     const fish = db.prepare("SELECT * FROM fish WHERE id = ?").get(info.lastInsertRowid);
     db.close();
-    ResponseFormatterFactory.getInstance().getFormatter("json").format(res, 201, fish);
+    res.status(201).json(fish)
   });
 
   // Modification d'un poisson (équipe du Récif)
@@ -106,7 +105,7 @@ export function createApp() {
     }
     const fish = db.prepare("SELECT * FROM fish WHERE id = ?").get(req.params.id);
     db.close();
-    ResponseFormatterFactory.getInstance().getFormatter("json").format(res, 200, fish);
+    res.status(200).json(fish)
   });
 
   // Suppression d'un poisson (équipe du Récif)
@@ -163,7 +162,7 @@ export function createApp() {
     db.prepare("UPDATE fish SET status = 'reserve' WHERE id = ?").run(req.params.id);
     const request = db.prepare("SELECT * FROM adoption_requests WHERE id = ?").get(info.lastInsertRowid);
     db.close();
-    ResponseFormatterFactory.getInstance().getFormatter("json").format(res, 201, request);
+    res.status(201).json(request)
   });
 
   // Liste des demandes (équipe du Récif), filtre ?status=
@@ -177,7 +176,7 @@ export function createApp() {
     if (req.query.status) filters.status = { op: "eq", value: req.query.status };
     const rows = db.prepare("SELECT * FROM adoption_requests " + buildWhere(filters) + " ORDER BY id").all();
     db.close();
-    ResponseFormatterFactory.getInstance().getFormatter("json").format(res, 200, rows);
+    res.status(200).json(rows)
   });
 
   // Accepter une demande (équipe du Récif)
@@ -203,7 +202,7 @@ export function createApp() {
     const updated = db.prepare("SELECT * FROM adoption_requests WHERE id = ?").get(req.params.id);
     db.close();
     console.log("Demande " + req.params.id + " acceptée, il faudrait prévenir " + request.adopter_email);
-    ResponseFormatterFactory.getInstance().getFormatter("json").format(res, 200, updated);
+    res.status(200).json(updated)
   });
 
   // Refuser une demande (équipe du Récif)
@@ -229,7 +228,7 @@ export function createApp() {
     const updated = db.prepare("SELECT * FROM adoption_requests WHERE id = ?").get(req.params.id);
     db.close();
     console.log("Demande " + req.params.id + " refusée, il faudrait prévenir " + request.adopter_email);
-    ResponseFormatterFactory.getInstance().getFormatter("json").format(res, 200, updated);
+    res.status(200).json(updated)
   });
 
   return app;
