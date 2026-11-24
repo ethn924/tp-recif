@@ -18,6 +18,11 @@ npm run db:init        # crée recif.db avec 5 poissons et 3 demandes d'adoption
 npm run dev            # http://localhost:3000
 ```
 
+contenu .env.example
+PORT=3000
+DB_FILE=recif.db
+ADMIN_API_KEY=recif-secret
+
 ## Les commandes de test
 
 | Commande | Rôle |
